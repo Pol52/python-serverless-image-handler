@@ -47,6 +47,8 @@ from tornado.options import options, define
 from thumbor.context import ServerParameters
 from thumbor.server import *
 
+import boto3
+
 thumbor_config_path = '/var/task/image_handler/thumbor.conf'
 thumbor_socket = '/tmp/thumbor'
 unix_path = 'http+unix://%2Ftmp%2Fthumbor'
@@ -207,9 +209,9 @@ def start_thumbor():
             run_server(application, thumbor_context)
             tornado.ioloop.IOLoop.instance().start()
             logging.info(
-                        'thumbor running at %s:%d' %
-                        (thumbor_context.server.ip, thumbor_context.server.port)
-                        )
+                'thumbor running at %s:%d' %
+                (thumbor_context.server.ip, thumbor_context.server.port)
+            )
             return config
     except RuntimeError as error:
         if str(error) != "IOLoop is already running":
@@ -239,28 +241,28 @@ def restart_server():
 # request processing methods
 #
 def is_thumbor_down():
-     if not os.path.exists(thumbor_socket):
-         start_server()
-     session = requests_unixsocket.Session()
-     http_health = '/healthcheck'
-     retries = 10
-     while(retries > 0):
-         try:
-             response = session.get(unix_path + http_health)
-             if (response.status_code == 200):
-                 break
-         except Exception as error:
-             time.sleep(0.03)
-             retries -= 1
-             continue
-     if retries <= 0:
-         logging.error(
-             'call_thumbor error: tornado server unavailable,\
-             proceeding with tornado server restart'
-         )
-         restart_server()
-         return response_formater(status_code='502')
-     return False, session
+    if not os.path.exists(thumbor_socket):
+        start_server()
+    session = requests_unixsocket.Session()
+    http_health = '/healthcheck'
+    retries = 10
+    while(retries > 0):
+        try:
+            response = session.get(unix_path + http_health)
+            if (response.status_code == 200):
+                break
+        except Exception as error:
+            time.sleep(0.03)
+            retries -= 1
+            continue
+    if retries <= 0:
+        logging.error(
+            'call_thumbor error: tornado server unavailable,\
+            proceeding with tornado server restart'
+        )
+        restart_server()
+        return response_formater(status_code='502')
+    return False, session
 
 def request_thumbor(original_request, session):
     """
@@ -280,41 +282,71 @@ def request_thumbor(original_request, session):
     vary, request_headers = auto_webp(original_request, request_headers)
     return session.get(unix_path + http_path, headers=request_headers), vary
 
-def process_thumbor_responde(thumbor_response, vary):
-     if thumbor_response.status_code != 200:
-         return response_formater(status_code=thumbor_response.status_code)
-     if vary:
-         vary = thumbor_response.headers['vary']
-     content_type = thumbor_response.headers['content-type']
-     body = gen_body(content_type, thumbor_response.content)
-     # SO-SIH-173 - 08/20/2018 - Lambda payload limit
-     # Lambda limits to 6MB of response payload
-     # https://docs.aws.amazon.com/lambda/latest/dg/limits.html
-     content_length = int(thumbor_response.headers['content-length'])
-     logging.debug('content length: %s' % (content_length))
-     if (content_length > 6000000):
+def process_thumbor_responde(thumbor_response, vary, original_request):
+    if thumbor_response.status_code != 200:
+        return response_formater(status_code=thumbor_response.status_code)
+    if vary:
+        vary = thumbor_response.headers['vary']
+    content_type = thumbor_response.headers['content-type']
+
+    # Save output to S3 if x-save-s3-key header is set.
+    if original_request.get('headers'):
+        s3_key = original_request['headers'].get('x-save-s3-key')
+        logging.debug('Save to S3: %s' % s3_key)
+
+        if s3_key :
+            s3_passed_secret = original_request['headers'].get('x-save-secret')
+
+            if s3_passed_secret :
+                if s3_passed_secret == os.environ.get('S3_SAVE_SECRET') :
+                    if (not os.environ.get('S3_SAVE_BUCKET')) :
+                        s3_save_bucket = os.environ.get('TC_AWS_LOADER_BUCKET') # fallback
+                    else :
+                        s3_save_bucket = os.environ.get('S3_SAVE_BUCKET')
+
+                    logging.debug('Save bucket: %s' % s3_save_bucket)
+                    s3 = boto3.resource('s3')
+                    object = s3.Object(s3_save_bucket, s3_key)
+                    object.put(Body=thumbor_response.content)
+                    logging.debug('File saved: %s' % s3_key)
+
+                    # POST method returns HTTP 201 Created and an empty body. GET returns the image in the body.
+                    if original_request['requestContext']['httpMethod'] == 'POST' :
+                        return response_formater(status_code=201, body='{}')
+                else :
+                    return response_formater(status_code=404)
+            else :
+                logging.error('Missing mandatory X-save-secret header')
+
+    body = gen_body(content_type, thumbor_response.content)
+    # SO-SIH-173 - 08/20/2018 - Lambda payload limit
+    # Lambda limits to 6MB of response payload
+    # https://docs.aws.amazon.com/lambda/latest/dg/limits.html
+    content_length = int(thumbor_response.headers['content-length'])
+    logging.debug('content length: %s' % (content_length))
+    if (content_length > 6000000):
         return response_formater(status_code='500',
                                  body={'message': 'body size is too long'},
                                  )
-     if body is None:
-         return response_formater(status_code='500',
-                                  cache_control='no-cache,no-store')
-     return response_formater(status_code='200',
-                              body=body,
-                              cache_control=thumbor_response.headers['Cache-Control'],
-                              content_type=content_type,
-                              expires=thumbor_response.headers['Expires'],
-                              etag=thumbor_response.headers['Etag'],
-                              date=thumbor_response.headers['Date'],
-                              vary=vary
-                              )
+    if body is None:
+        return response_formater(status_code='500',
+                                 cache_control='no-cache,no-store')
+    return response_formater(status_code='200',
+                             body=body,
+                             cache_control=thumbor_response.headers['Cache-Control'],
+                             content_type=content_type,
+                             expires=thumbor_response.headers['Expires'],
+                             etag=thumbor_response.headers['Etag'],
+                             date=thumbor_response.headers['Date'],
+                             vary=vary
+                             )
 
 def call_thumbor(original_request):
     thumbor_down, session = is_thumbor_down()
     if thumbor_down:
         return thumbor_down
     thumbor_response, vary = request_thumbor(original_request, session)
-    return process_thumbor_responde(thumbor_response, vary)
+    return process_thumbor_responde(thumbor_response, vary, original_request)
 
 def lambda_handler(event, context):
     """
@@ -325,15 +357,16 @@ def lambda_handler(event, context):
         global log_level
         log_level = str(os.environ.get('LOG_LEVEL')).upper()
         if log_level not in [
-                                'DEBUG', 'INFO',
-                                'WARNING', 'ERROR',
-                                'CRITICAL'
-                            ]:
+            'DEBUG', 'INFO',
+            'WARNING', 'ERROR',
+            'CRITICAL'
+        ]:
             log_level = 'ERROR'
         logging.getLogger().setLevel(log_level)
 
-        if event['requestContext']['httpMethod'] != 'GET' and\
-           event['requestContext']['httpMethod'] != 'HEAD':
+        if event['requestContext']['httpMethod'] != 'GET' and \
+                event['requestContext']['httpMethod'] != 'HEAD' and \
+                event['requestContext']['httpMethod'] != 'POST':
             return response_formater(status_code=405)
         result = call_thumbor(event)
         if str(os.environ.get('SEND_ANONYMOUS_DATA')).upper() == 'YES':
