@@ -314,6 +314,7 @@ def process_thumbor_responde(thumbor_response, vary, original_request):
                     if original_request['requestContext']['httpMethod'] == 'POST' :
                         return response_formater(status_code=201, body='{}')
                 else :
+                    logging.error('Wrong x-save-secret, authentication failed')
                     return response_formater(status_code=404)
             else :
                 logging.error('Missing mandatory X-save-secret header')
