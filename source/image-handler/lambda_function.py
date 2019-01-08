@@ -312,7 +312,7 @@ def process_thumbor_responde(thumbor_response, vary, original_request):
 
                     # POST method returns HTTP 201 Created and an empty body. GET returns the image in the body.
                     if original_request['requestContext']['httpMethod'] == 'POST' :
-                        return response_formater(status_code=201, body='{}')
+                        return response_formater(status_code=201, body='{ size: '+ thumbor_response.headers['content-length'] +'}')
                 else :
                     logging.error('Wrong x-save-secret, authentication failed')
                     return response_formater(status_code=404)
