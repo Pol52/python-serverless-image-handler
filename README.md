@@ -90,7 +90,7 @@ that matches the S3_SAVE_SECRET.
 
 Now you can issue two different type of requests, depending on your needs:
 
-- GET request: the output image to be returned in the body of the request. HTTP status will be 200 OK.
+- GET request: the output image to be returned in the body of the request. HTTP status will be 200 OK;
 - POST request: the output image to be returned in the body of the request. HTTP status will be 201 Created.
 
 Example:
