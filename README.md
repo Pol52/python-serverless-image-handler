@@ -101,7 +101,7 @@ Example:
     # image not returned in the body
 	curl -I -X POST -H "X-save-s3-key: out/image.jpg" -H "X-save-secret: ayzd5BEk7znTCMgNRQMkfyfTa54A6vA6" https://a12345.execute-api.us-east-1.amazonaws.com/image/300x300/source.jpg
 
-If you just the POST request, the 6 MB limit for the output image does not apply.
+If you just the POST request, the 6MB limit for the output image does not apply.
 
 ***
 
