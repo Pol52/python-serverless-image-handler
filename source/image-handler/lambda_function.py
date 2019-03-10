@@ -307,7 +307,7 @@ def process_thumbor_responde(thumbor_response, vary, original_request):
                     logging.debug('Save bucket: %s' % s3_save_bucket)
                     s3 = boto3.resource('s3')
                     object = s3.Object(s3_save_bucket, s3_key)
-                    object.put(Body=thumbor_response.content)
+                    object.put(Body=thumbor_response.content, ContentType=content_type)
                     logging.debug('File saved: %s' % s3_key)
 
                     # POST method returns HTTP 201 Created and an empty body. GET returns the image in the body.
