@@ -179,6 +179,10 @@ echo "zip -q -r9 $VIRTUAL_ENV/../serverless-image-handler.zip *"
 zip -q -r9 $VIRTUAL_ENV/../serverless-image-handler.zip *
 cd $VIRTUAL_ENV
 pwd
+
+# pycurl must be removed to get lambda working on the new Linux AMI (July 2019)
+rm -rf pycurl*
+
 echo "zip -q -g $VIRTUAL_ENV/../serverless-image-handler.zip pngquant"
 zip -q -g $VIRTUAL_ENV/../serverless-image-handler.zip pngquant
 echo "zip -q -g $VIRTUAL_ENV/../serverless-image-handler.zip jpegtran"
