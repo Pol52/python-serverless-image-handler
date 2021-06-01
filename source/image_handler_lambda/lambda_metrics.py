@@ -21,9 +21,8 @@ import json
 import logging
 import os
 import timeit
-from urllib2 import Request
-from urllib2 import urlopen
-from setuptools import setup, find_packages
+from urllib.request import Request
+from urllib.request import urlopen
 from pkg_resources import get_distribution
 from thumbor.url import Url
 
@@ -31,13 +30,13 @@ from thumbor.url import Url
 def send_data(event, result, start_time):
     time_now = datetime.datetime.utcnow().isoformat()
     time_stamp = str(time_now)
-    postDict = {}
+    post_dict = {}
     size = '-'
     filters = Url.parse_decrypted(event['path'])
     del filters['image']
     if int(result['statusCode']) == 200:
         size = (len(result['body'] * 3)) / 4
-    postDict['Data'] = {
+    post_dict['Data'] = {
         'Version': get_distribution('image_handler').version,
         'Company': 'AWS',
         'Name': 'AWS Serverless Image Handler',
@@ -47,17 +46,17 @@ def send_data(event, result, start_time):
         'ResponseSize': size,
         'ResponseTime': round(timeit.default_timer() - start_time, 3)
     }
-    postDict['TimeStamp'] = time_stamp
-    postDict['Solution'] = 'SO0023'
-    postDict['UUID'] = os.environ.get('UUID')
+    post_dict['TimeStamp'] = time_stamp
+    post_dict['Solution'] = 'SO0023'
+    post_dict['UUID'] = os.environ.get('UUID')
     # API Gateway URL to make HTTP POST call
     url = 'https://metrics.awssolutionsbuilder.com/generic'
-    data = json.dumps(postDict)
+    data = json.dumps(post_dict)
     headers = {'content-type': 'application/json'}
     req = Request(url, data, headers)
     rsp = urlopen(req)
     content = rsp.read()
-    rspcode = rsp.getcode()
-    logging.debug('Response Code: {}'.format(rspcode))
+    rsp_code = rsp.getcode()
+    logging.debug('Response Code: {}'.format(rsp_code))
     logging.debug('Response Content: {}'.format(content))
     return req

@@ -53,5 +53,5 @@
   "stageVariables": {
     "baz": "qux"
   },
-  "path": "/300x200/067a6c0e8/file00011160000xy.jpg"
+  "path": "https://raw.githubusercontent.com/thumbor/thumbor/master/example.jpg"
 }
