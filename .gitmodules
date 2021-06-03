@@ -1,0 +1,3 @@
+[submodule "source/tc_aws"]
+	path = source/tc_aws
+	url = https://github.com/amanagr/aws.git
