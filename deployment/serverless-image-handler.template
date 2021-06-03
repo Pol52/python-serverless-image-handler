@@ -139,7 +139,7 @@ Mappings:
       Description: >-
         Serverless Image Handler: This function is invoked by the
         serverless-image-handler API Gateway to manipulate images with Thumbor.
-      Runtime: python2.7
+      Runtime: python3.8
       Timeout: '10'
       MemorySize: '1536'
     CustomResource:
@@ -152,7 +152,7 @@ Mappings:
         Serverless Image Handler: CloudFormation custom resource function
         invoked during CloudFormation create, update, and delete stack
         operations.
-      Runtime: python2.7
+      Runtime: python3.8
       Timeout: '60'
       MemorySize: '128'
   UI:

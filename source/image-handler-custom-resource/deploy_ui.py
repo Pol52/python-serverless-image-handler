@@ -15,8 +15,6 @@
 #  express or implied. See the License for the specific language governing   #
 #  permissions and limitations under the License.                            #
 ##############################################################################
-from __future__ import print_function
-
 import json
 import logging
 import os
@@ -26,68 +24,70 @@ import time
 import boto3
 from botocore.client import Config
 from zipfile import ZipFile
-import re
+import shutil
+
 
 log_level = str(os.environ.get('LOG_LEVEL')).upper()
-if log_level not in ['DEBUG', 'INFO','WARNING', 'ERROR','CRITICAL']:
+if log_level not in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']:
     log_level = 'ERROR'
 log = logging.getLogger()
 log.setLevel(log_level)
 
-def DeployImageHandlerUI(deploy_config):
-    #Expected dict entries
-    #deploy_config['UISourceURL']
-    #deploy_config['UIBucket']
-    #deploy_config['UIBucketRegion']
-    #deploy_config['UIPrefix']
-    #deploy_config['UIPublicRead']
-    #deploy_config['FindReplace']
-    #deploy_config['Deliminator']
-    try:
-        SrcBucket, SrcKey = deploy_config['UISourceURL'].split("/", 1)
-        FileName = SrcKey.rsplit("/", 1)[1]
-        tmpdir = '/tmp/ui/'
-        log.info("%s/%s - downloading to %s%s", SrcBucket, SrcKey, tmpdir, FileName)
 
-        #Clean up exisitng directories or files
+def deploy_image_handler_ui(deploy_config):
+    # Expected dict entries
+    # deploy_config['UISourceURL']
+    # deploy_config['UIBucket']
+    # deploy_config['UIBucketRegion']
+    # deploy_config['UIPrefix']
+    # deploy_config['UIPublicRead']
+    # deploy_config['FindReplace']
+    # deploy_config['Deliminator']
+    try:
+        src_bucket, src_key = deploy_config['UISourceURL'].split("/", 1)
+        file_name = src_key.rsplit("/", 1)[1]
+        tmpdir = '/tmp/ui/'
+        log.info("%s/%s - downloading to %s%s", src_bucket, src_key, tmpdir, file_name)
+
+        # Clean up existing directories or files
         if os.path.exists(tmpdir):
             shutil.rmtree(tmpdir)
         os.makedirs(tmpdir)
-        FilePath = "{}{}".format(tmpdir, FileName)
-        if os.path.exists(FilePath):
-            os.remove(FilePath)
+        file_path = "{}{}".format(tmpdir, file_name)
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
         s3 = boto3.client("s3", config=Config(signature_version='s3v4'))
-        s3.download_file(SrcBucket, SrcKey, FilePath)
-        log.info("File downloaded to %s", FilePath)
-        log.info("Extracting %s to %s", FilePath, tmpdir)
-        zipf = ZipFile(FilePath, 'r')
-        zipf.extractall(tmpdir)
-        zipf.close()
-        log.info("Deleting %s", FilePath)
-        os.remove(FilePath)
+        s3.download_file(src_bucket, src_key, file_path)
+        log.info("File downloaded to %s", file_path)
+        log.info("Extracting %s to %s", file_path, tmpdir)
+        zip_file = ZipFile(file_path, 'r')
+        zip_file.extractall(tmpdir)
+        zip_file.close()
+        log.info("Deleting %s", file_path)
+        os.remove(file_path)
 
         if 'FindReplace' in deploy_config:
-            FilePath = tmpdir+"index.html"
+            file_path = tmpdir + "index.html"
             index_html = ''
-            log.info("Opening %s", FilePath)
-            indexfile = open(FilePath, 'r')
-            log.info("Reading %s", FilePath)
-            for line in indexfile:
+            log.info("Opening %s", file_path)
+            index_file = open(file_path, 'r')
+            log.info("Reading %s", file_path)
+            for line in index_file:
                 for fr in deploy_config['FindReplace'].split(','):
                     f, r = fr.split(deploy_config['Deliminator'])
                     line = line.replace(f, r)
                 index_html += line
-            indexfile.close()
+            index_file.close()
             log.info("Writing changed file")
-            indexfile = open(FilePath, 'w')
-            indexfile.write(index_html)
-            indexfile.close()
+            index_file = open(file_path, 'w')
+            index_file.write(index_html)
+            index_file.close()
 
             log.info("Uploading %s/* to %s/%s", tmpdir, deploy_config['UIBucket'], deploy_config['UIPrefix'])
             # Grant bucket owner full control of objects (in case this is deployed to another account's bucket)
-            extraArgs = {'ACL':'bucket-owner-full-control'}
-            log.debug("ExtraArgs = %s", extraArgs)
+            extra_args = {'ACL': 'bucket-owner-full-control'}
+            log.debug("ExtraArgs = %s", extra_args)
             for root, dirs, files in os.walk(tmpdir):
                 for filename in files:
                     # construct the full local path
@@ -99,26 +99,28 @@ def DeployImageHandlerUI(deploy_config):
                     log.info("Uploading %s...", s3_path)
                     # Setting content type
                     if filename.endswith('.htm') or filename.endswith('.html'):
-                        extraArgs.update({"ContentType": "text/html"})
+                        extra_args.update({"ContentType": "text/html"})
                     if filename.endswith('.css'):
-                        extraArgs.update({"ContentType": "text/css"})
+                        extra_args.update({"ContentType": "text/css"})
                     if filename.endswith('.js'):
-                        extraArgs.update({"ContentType": "application/javascript"})
+                        extra_args.update({"ContentType": "application/javascript"})
                     if filename.endswith('.png'):
-                        extraArgs.update({"ContentType": "image/png"})
+                        extra_args.update({"ContentType": "image/png"})
                     if filename.endswith('.jpeg') or filename.endswith('.jpg'):
-                        extraArgs.update({"ContentType": "image/jpeg"})
+                        extra_args.update({"ContentType": "image/jpeg"})
                     if filename.endswith('.gif'):
-                        extraArgs.update({"ContentType": "image/gif"})
-                    s3.upload_file(Filename=local_path, Bucket=deploy_config['UIBucket'], Key=s3_path, ExtraArgs=extraArgs)
+                        extra_args.update({"ContentType": "image/gif"})
+                    s3.upload_file(Filename=local_path, Bucket=deploy_config['UIBucket'], Key=s3_path,
+                                   ExtraArgs=extra_args)
     except Exception as e:
         log.error("Error uploading UI. Error: %s", e)
         raise
 
-def DeleteImageHandlerUI(deploy_config):
-    #Expected dict entries
-    #deploy_config['UIBucket']
-    #deploy_config['UIPrefix']
+
+def delete_image_handler_ui(deploy_config):
+    # Expected dict entries
+    # deploy_config['UIBucket']
+    # deploy_config['UIPrefix']
     log.info("Deleting Serverless Image Handler UI from %s/%s", deploy_config['UIBucket'], deploy_config['UIPrefix'])
     try:
         s3 = boto3.client("s3", config=Config(signature_version='s3v4'))
@@ -132,73 +134,78 @@ def DeleteImageHandlerUI(deploy_config):
         log.error("Error deleting UI. Error: %s", e)
         raise
 
-def sendFailedResponse(event, resourceId, reason):
-    responseBody = {'Status': "FAILED",
-                    'PhysicalResourceId': resourceId,
+
+def send_failed_response(event, resource_id, reason):
+    response_body = {'Status': "FAILED",
+                    'PhysicalResourceId': resource_id,
                     'Reason': reason,
                     'StackId': event['StackId'],
                     'RequestId': event['RequestId'],
                     'LogicalResourceId': event['LogicalResourceId']}
-    log.info('RESPONSE BODY:n' + json.dumps(responseBody))
+    log.info('RESPONSE BODY:n' + json.dumps(response_body))
     try:
-        requests.put(event['ResponseURL'], data=json.dumps(responseBody))
+        requests.put(event['ResponseURL'], data=json.dumps(response_body))
         return
     except Exception as e:
         log.error("Error sending FAILED response message: %s", e)
         raise
 
-def sendResponse(event, resourceId):
-    responseBody =  {
-                        'Status': 'SUCCESS',
-                        'PhysicalResourceId': resourceId,
-                        'StackId': event['StackId'],
-                        'RequestId': event['RequestId'],
-                        'LogicalResourceId': event['LogicalResourceId']
-                    }
-    log.info('RESPONSE BODY:n' + json.dumps(responseBody))
+
+def send_response(event, resource_id):
+    response_body = {
+        'Status': 'SUCCESS',
+        'PhysicalResourceId': resource_id,
+        'StackId': event['StackId'],
+        'RequestId': event['RequestId'],
+        'LogicalResourceId': event['LogicalResourceId']
+    }
+    log.info('RESPONSE BODY:n' + json.dumps(response_body))
     try:
-        requests.put(event['ResponseURL'], data=json.dumps(responseBody))
+        requests.put(event['ResponseURL'], data=json.dumps(response_body))
         return
     except Exception as e:
         log.error("Error sending SUCCESS response", e)
         raise
 
-def createApplication(event,context):
+
+def create_application(event, context):
     # Create S3 client, download the UI, and push it to the customer's bucket
-    resourceId=""
+    resourceId = ""
     try:
         deploy = ast.literal_eval(event['ResourceProperties']['DeployUI'])
-        resourceId=deploy['UIBucket']+'/'+deploy['UIPrefix']
-        DeployImageHandlerUI(deploy)
+        resourceId = deploy['UIBucket'] + '/' + deploy['UIPrefix']
+        deploy_image_handler_ui(deploy)
         # Only send response if the RequestType was a Create
         if event['RequestType'] == 'Create':
-            sendResponse(event, resourceId)
+            send_response(event, resourceId)
     except Exception as e:
         log.error(e)
-        sendFailedResponse(event, resourceId, "Failed to deploy Image Handler UI")
+        send_failed_response(event, resourceId, "Failed to deploy Image Handler UI")
 
-def deleteApplication(event, context):
-    resourceId = event['PhysicalResourceId']
-    #Create an S3 client and remove UI
+
+def delete_application(event, context):
+    resource_id = event['PhysicalResourceId']
+    # Create an S3 client and remove UI
     try:
         deploy = ast.literal_eval(event['ResourceProperties']['DeployUI'])
-        DeleteImageHandlerUI(deploy)
+        delete_image_handler_ui(deploy)
         if event['RequestType'] == 'Delete':
-            sendResponse(event, resourceId)
+            send_response(event, resource_id)
     except Exception as e:
         # If the try fails, send failure
         log.error(e)
         time.sleep(30)
-        sendFailedResponse(event, resourceId, "Failed to delete "+resourceId)
+        send_failed_response(event, resource_id, "Failed to delete " + resource_id)
 
-def updateApplication(event,context):
-    resourceId = event['PhysicalResourceId']
+
+def update_application(event, context):
+    resource_id = event['PhysicalResourceId']
     # When called to update, we will simply replace old with new
     try:
-        deleteApplication(event,context)
-        createApplication(event,context)
-        sendResponse(event, resourceId)
+        delete_application(event, context)
+        create_application(event, context)
+        send_response(event, resource_id)
     except Exception as e:
         # If the try fails, send failure
         log.error(e)
-        sendFailedResponse(event, resourceId, "Failed to update "+resourceId)
+        send_failed_response(event, resource_id, "Failed to update " + resource_id)

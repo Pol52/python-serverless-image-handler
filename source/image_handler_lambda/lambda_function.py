@@ -295,7 +295,7 @@ def request_thumbor(original_request, session):
         logging.error('invalid http path: %s' % error)
     request_headers = {}
     vary, request_headers = auto_webp(original_request, request_headers)
-    return session.get(http_path, headers=request_headers), vary  # TODO: Add unix path string concatenation in prod
+    return session.get(unix_path + http_path, headers=request_headers), vary
 
 
 def process_thumbor_response(thumbor_response, vary, original_request):

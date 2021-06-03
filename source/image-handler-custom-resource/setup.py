@@ -3,13 +3,10 @@
 from setuptools import setup, find_packages
 # SO-SIH-156 - 07/16/2018 - Pip version upgrade
 # Upgrading pip version, handling error
-try: # for pip >= 10
-    from pip._internal.req import parse_requirements
-except ImportError: # for pip <= 9.0.3
-    from pip.req import parse_requirements
+
 
 setup(
-    name='image_handler_custom_resource',
+    name='image_handler_custom_resource_py3',
     version='1.0',
     description='AWS Serverless Image Handler CFN Custom Resource',
     author='AWS Solutions Builder',
@@ -19,10 +16,10 @@ setup(
     package_dir={'image_handler_custom_resource': '.'},
     include_package_data=False,
     install_requires=[
-        'image_handler_custom_resource>=1.0',
+        'image_handler_custom_resource_py3>=1.0',
         'requests',
     ],
     classifiers=[
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.8',
     ],
 )

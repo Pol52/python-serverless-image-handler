@@ -19,9 +19,9 @@ from __future__ import print_function
 
 import logging
 import os
-from image_handler_custom_resource import create_uuid
-from image_handler_custom_resource import launch_metrics
-from image_handler_custom_resource import deploy_ui
+from image_handler_custom_resource_py3 import create_uuid
+from image_handler_custom_resource_py3 import launch_metrics
+from image_handler_custom_resource_py3 import deploy_ui
 
 log_level = str(os.environ.get('LOG_LEVEL')).upper()
 if log_level not in ['DEBUG', 'INFO','WARNING', 'ERROR','CRITICAL']:
@@ -40,8 +40,8 @@ def lambda_handler(event, context):
         newResource = deploy_ui
 
     if event['RequestType'] == 'Create':
-        newResource.createApplication(event,context)
+        newResource.create_application(event, context)
     if event['RequestType'] == 'Delete':
-        newResource.deleteApplication(event, context)
+        newResource.delete_application(event, context)
     if event['RequestType'] == 'Update':
-        newResource.updateApplication(event,context)
+        newResource.update_application(event, context)

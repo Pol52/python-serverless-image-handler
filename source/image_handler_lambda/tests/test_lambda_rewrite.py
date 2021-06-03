@@ -17,7 +17,7 @@
 
 import unittest
 import os
-from image_handler.lambda_rewrite import match_patterns
+from image_handler_py3.lambda_rewrite import match_patterns
 
 
 class match_patterns_test_case(unittest.TestCase):

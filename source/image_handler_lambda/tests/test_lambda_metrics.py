@@ -17,18 +17,16 @@
 
 import unittest
 import timeit
-from urllib2 import Request
-from image_handler.lambda_metrics import send_data
-from image_handler.lambda_function import response_formater
-from event import import_event
-from mock import patch
+from image_handler_py3.lambda_metrics import send_data
+from image_handler_py3.lambda_function import response_formatter
+from .event import import_event
 
 
 class send_data_test_case(unittest.TestCase):
 
     def test_send_data(self):
-        self.assertTrue(send_data(import_event(),response_formater(),timeit.default_timer()))
+        self.assertTrue(send_data(import_event(), response_formatter(), timeit.default_timer()))
+
 
 if __name__ == '__main__':
     unittest.main()
-

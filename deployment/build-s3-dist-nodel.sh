@@ -3,11 +3,11 @@
 # This assumes all of the OS-level configuration has been completed and git repo has already been cloned
 #sudo yum-config-manager --enable epel
 #sudo yum update -y
-#sudo yum install git libpng-devel libcurl-devel gcc python-devel libjpeg-devel -y
-# pip install --upgrade pip==9.0.3
+#sudo yum install git libpng-devel libcurl-devel gcc python3.8-devel libjpeg-devel -y
+# pip3.8 install --upgrade pip3.8==9.0.3
 # alias sudo='sudo env PATH=$PATH'
-# pip install --upgrade setuptools==39.0.1
-# pip install --upgrade virtualenv==15.2.0
+# pip3.8 install --upgrade setuptools==39.0.1
+# pip3.8 install --upgrade virtualenv==15.2.0
 # This script should be run from the repo's deployment directory
 # cd deployment
 # ./build-s3-dist.sh source-bucket-base-name
@@ -51,19 +51,17 @@ echo "virtualenv --no-site-packages env"
 virtualenv --no-site-packages env
 echo "source env/bin/activate"
 source env/bin/activate
-echo "python -m pip install pip==9.0.3"
-python -m pip install pip==9.0.3
 # SO-SIH-157 - 07/17/2018 - Pip version
-# Checking pip version inside virtualenv for debugging
-echo "which python pip virtualenv, version"
-which python && python --version
-which pip && pip --version
+# Checking pip3.8 version inside virtualenv for debugging
+echo "which python3.8 pip3.8 virtualenv, version"
+which python3.8 && python3.8 --version
+which pip3.8 && pip3.8 --version
 which virtualenv && virtualenv --version
 
 # Building custom resource zip
-echo "pip install -q $deployment_dir/../source/image-handler-custom-resource/. --target=$deployment_dir/dist/env/lib/python2.7/site-packages/"
-pip install -q $deployment_dir/../source/image-handler-custom-resource/. --target=$deployment_dir/dist/env/lib/python2.7/site-packages/
-cd $deployment_dir/dist/env/lib/python2.7/site-packages/
+echo "pip3.8 install -q $deployment_dir/../source/image-handler-custom-resource/. --target=$deployment_dir/dist/env/lib/python3.8/site-packages/"
+pip3.8 install -q $deployment_dir/../source/image-handler-custom-resource/. --target=$deployment_dir/dist/env/lib/python3.8/site-packages/
+cd $deployment_dir/dist/env/lib/python3.8/site-packages/
 zip -r9 $deployment_dir/dist/serverless-image-handler-custom-resource.zip *
 cd $deployment_dir/dist
 zip -q -d serverless-image-handler-custom-resource.zip pip*
@@ -78,11 +76,9 @@ echo "virtualenv --no-site-packages env"
 virtualenv --no-site-packages env
 echo "source env/bin/activate"
 source env/bin/activate
-echo "python -m pip install pip==9.0.3"
-python -m pip install pip==9.0.3
-echo "which python pip virtualenv, version"
-which python && python --version
-which pip && pip --version
+echo "which python3.8 pip3.8 virtualenv, version"
+which python3.8 && python3.8 --version
+which pip3.8 && pip3.8 --version
 which virtualenv && virtualenv --version
 
 cd ../..
@@ -118,8 +114,8 @@ which curl-config && curl-config --version
 cd $VIRTUAL_ENV
 cd ../../..
 pwd
-echo "pip install source/image-handler/. --target=$VIRTUAL_ENV/lib/python2.7/site-packages/"
-pip install source/image-handler/. --target=$VIRTUAL_ENV/lib/python2.7/site-packages/
+echo "pip3.8 install source/image-handler/. --target=$VIRTUAL_ENV/lib/python3.8/site-packages/"
+pip3.8 install source/image-handler/. --target=$VIRTUAL_ENV/lib/python3.8/site-packages/
 
 cd $VIRTUAL_ENV
 
@@ -173,7 +169,7 @@ cp -f /usr/lib64/libXt.so* $VIRTUAL_ENV/bin/lib
 cp -f /usr/lib64/libltdl.so* $VIRTUAL_ENV/bin/lib
 cp -f /usr/lib64/libjbig.so* $VIRTUAL_ENV/bin/lib
 #packing all
-cd $VIRTUAL_ENV/lib/python2.7/site-packages
+cd $VIRTUAL_ENV/lib/python3.8/site-packages
 pwd
 echo "zip -q -r9 $VIRTUAL_ENV/../serverless-image-handler.zip *"
 zip -q -r9 $VIRTUAL_ENV/../serverless-image-handler.zip *

@@ -25,6 +25,7 @@ from urllib.request import Request
 from urllib.request import urlopen
 from pkg_resources import get_distribution
 from thumbor.url import Url
+from urllib import parse
 
 
 def send_data(event, result, start_time):
@@ -37,7 +38,7 @@ def send_data(event, result, start_time):
     if int(result['statusCode']) == 200:
         size = (len(result['body'] * 3)) / 4
     post_dict['Data'] = {
-        'Version': get_distribution('image_handler').version,
+        'Version': get_distribution('image_handler_py3').version,
         'Company': 'AWS',
         'Name': 'AWS Serverless Image Handler',
         'Region': os.environ.get('AWS_DEFAULT_REGION'),
@@ -51,7 +52,7 @@ def send_data(event, result, start_time):
     post_dict['UUID'] = os.environ.get('UUID')
     # API Gateway URL to make HTTP POST call
     url = 'https://metrics.awssolutionsbuilder.com/generic'
-    data = json.dumps(post_dict)
+    data = parse.urlencode(post_dict).encode("utf-8")
     headers = {'content-type': 'application/json'}
     req = Request(url, data, headers)
     rsp = urlopen(req)

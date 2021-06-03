@@ -9,7 +9,7 @@ tests_require = [
 
 setup(
     name='image_handler_py3',
-    version='3.0py3',
+    version='3.2',
     description='Python3.8 version of AWS Serverless Image Handler',
     author='Ian Hartz',
     license='ASL',
@@ -22,7 +22,7 @@ setup(
         '': ['*.conf'],
     },
     install_requires=[
-        'botocore==1.20.84',
+        'botocore',
         # SO-SIH-159 - 07/18/2018 - Version and dependencies fix
         # Locking botocore, pycurl version and moving dependencies from requirements
         'tornado==6.1',
@@ -33,10 +33,10 @@ setup(
         'thumbor-plugins==0.2.4',
         # SO-SIH-155 - 07/18/2018 - Rekognition integration
         # Adding Rekognition
-        #'thumbor_rekognition==0.1.1',
-        #'tc_aws @ git+https://github.com/amanagr/aws.git@thumbor-7#egg=tc_aws',
+        #'thumbor_rekognition==0.1.1', #TODO: fix thumbor_rekognition boto3 dependencies before enabling
+        #'tc_aws @ git+https://github.com/amanagr/aws.git@thumbor-7#egg=tc_aws', # manually build from submodule until stable community release
         'opencv-python==4.5.2.52',
-        'boto3==1.17.84',
+        'boto3==1.17.86',
         's3transfer==0.4.2'
     ],
     extras_require={

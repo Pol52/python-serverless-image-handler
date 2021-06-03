@@ -15,8 +15,6 @@
 #  express or implied. See the License for the specific language governing   #
 #  permissions and limitations under the License.                            #
 ##############################################################################
-from __future__ import print_function
-
 import json
 import requests
 import logging
@@ -30,16 +28,18 @@ if log_level not in ['DEBUG', 'INFO','WARNING', 'ERROR','CRITICAL']:
 log = logging.getLogger()
 log.setLevel(log_level)
 
-def createUniqueID():
+
+def create_unique_id():
     log.info("Creating Unique ID")
     # Generate new random Unique ID
-    uniqueID = uuid.uuid4()
-    log.debug("UUID: %s", uniqueID)
-    return uniqueID
+    unique_id = uuid.uuid4()
+    log.debug("UUID: %s", unique_id)
+    return unique_id
 
-def sendFailedResponse(event, resourceId, reason):
+
+def send_failed_response(event, resource_id, reason):
     responseBody = {'Status': "FAILED",
-                    'PhysicalResourceId': resourceId,
+                    'PhysicalResourceId': resource_id,
                     'Reason': reason,
                     'StackId': event['StackId'],
                     'RequestId': event['RequestId'],
@@ -52,46 +52,50 @@ def sendFailedResponse(event, resourceId, reason):
         log.error(e)
         raise
 
-def sendResponse(event, solution_uuid):
-    responseBody =  {
+
+def send_response(event, solution_uuid):
+    response_body = {
                         'Status': 'SUCCESS',
                         'PhysicalResourceId': solution_uuid,
                         'StackId': event['StackId'],
                         'RequestId': event['RequestId'],
                         'LogicalResourceId': event['LogicalResourceId'],
-                        'Data': { "UUID": solution_uuid }
+                        'Data': {"UUID": solution_uuid}
                     }
-    log.info('RESPONSE BODY:n' + json.dumps(responseBody))
+    log.info('RESPONSE BODY:n' + json.dumps(response_body))
     try:
-        requests.put(event['ResponseURL'], data=json.dumps(responseBody))
+        requests.put(event['ResponseURL'], data=json.dumps(response_body))
         return
     except Exception as e:
         log.error(e)
         raise
 
-def createApplication(event,context):
-    new_uuid = str(createUniqueID())
+
+def create_application(event, context):
+    new_uuid = str(create_unique_id())
     try:
-        sendResponse(event, new_uuid)
+        send_response(event, new_uuid)
     except Exception as e:
         log.error(e)
-        sendFailedResponse(event, new_uuid, "Failed to create UUID")
+        send_failed_response(event, new_uuid, "Failed to create UUID")
 
-def deleteApplication(event, context):
+
+def delete_application(event, context):
     prev_uuid = event['PhysicalResourceId']
     try:
-        sendResponse(event, prev_uuid)
+        send_response(event, prev_uuid)
     except Exception as e:
         # If the try fails, send failure
         log.error(e)
         time.sleep(30)
-        sendFailedResponse(event, prev_uuid, "Failed to delete "+prev_uuid)
+        send_failed_response(event, prev_uuid, "Failed to delete " + prev_uuid)
 
-def updateApplication(event,context):
+
+def update_application(event, context):
     prev_uuid = event['PhysicalResourceId']
     try:
-        sendResponse(event, prev_uuid)
+        send_response(event, prev_uuid)
     except Exception as e:
         # If the try fails, send failure
         log.error(e)
-        sendFailedResponse(event, prev_uuid, "Failed to update "+prev_uuid)
+        send_failed_response(event, prev_uuid, "Failed to update " + prev_uuid)

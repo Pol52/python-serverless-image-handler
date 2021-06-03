@@ -3,11 +3,11 @@
 # This assumes all of the OS-level configuration has been completed and git repo has already been cloned
 #sudo yum-config-manager --enable epel
 #sudo yum update -y
-#sudo yum install git libpng-devel libcurl-devel gcc python-devel libjpeg-devel -y
-# pip install --upgrade pip==9.0.3
+#sudo yum install git libpng-devel libcurl-devel gcc python3.8-devel libjpeg-devel -y
+# pip3.8 install --upgrade pip3.8==9.0.3
 # alias sudo='sudo env PATH=$PATH'
-# pip install --upgrade setuptools==39.0.1
-# pip install --upgrade virtualenv==15.2.0
+# pip3.8 install --upgrade setuptools==39.0.1
+# pip3.8 install --upgrade virtualenv==15.2.0
 # This script should be run from the repo's deployment directory
 # cd deployment
 # ./build-s3-dist.sh source-bucket-base-name
@@ -35,11 +35,9 @@ echo "virtualenv --no-site-packages env"
 virtualenv --no-site-packages env
 echo "source env/bin/activate"
 source env/bin/activate
-echo "python -m pip install pip==9.0.3"
-python -m pip install pip==9.0.3
-echo "which python pip virtualenv, version"
-which python && python --version
-which pip && pip --version
+echo "which python3.8 pip3.8 virtualenv, version"
+which python3.8 && python3.8 --version
+which pip3.8 && pip3.8 --version
 which virtualenv && virtualenv --version
 
 # SO-SIH-159 - 07/25/2018 - Pycurl ssl backend
@@ -48,12 +46,12 @@ which virtualenv && virtualenv --version
 export PYCURL_SSL_LIBRARY=nss
 
 cd $VIRTUAL_ENV
-rm -rf lib/python2.7/site-packages/image_handler
+rm -rf lib/python3.8/site-packages/image_handler
 
 cd ../../..
 pwd
-echo "pip install source/image-handler/. --target=$VIRTUAL_ENV/lib/python2.7/site-packages/"
-pip install source/image-handler/. --target=$VIRTUAL_ENV/lib/python2.7/site-packages/
+echo "pip3.8 install source/image-handler/. --target=$VIRTUAL_ENV/lib/python3.8/site-packages/"
+pip3.8 install source/image-handler/. --target=$VIRTUAL_ENV/lib/python3.8/site-packages/
 
 cd $VIRTUAL_ENV
 
@@ -63,7 +61,7 @@ pwd
 # SO-SIH-170 - 08/15/2018 - mozjpeg path
 # mozjpeg executable becomes cjpeg, rectifying path
 cd $VIRTUAL_ENV
-cd $VIRTUAL_ENV/lib/python2.7/site-packages
+cd $VIRTUAL_ENV/lib/python3.8/site-packages
 pwd
 echo "zip -q -r9 $VIRTUAL_ENV/../serverless-image-handler.zip *"
 zip -q -r9 $VIRTUAL_ENV/../serverless-image-handler.zip *

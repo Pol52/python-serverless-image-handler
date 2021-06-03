@@ -14,19 +14,23 @@
 
 # Test source
 echo "Staring to test distribution"
+# shellcheck disable=SC2006
 echo "export deployment_dir=`pwd`"
+# shellcheck disable=SC2006
+# shellcheck disable=SC2155
 export deployment_dir=`pwd`
 echo "mkdir -p test"
 mkdir -p test
-cd $deployment_dir/test
+# shellcheck disable=SC2164
+cd "$deployment_dir"/test
 pwd
 # SIM - 07/31/2018 - Fix in class import
 # The test.test_support module seems to be missing from 2.7.14.
 # Module is needed for unit tests, compiling 2.7.15
 # https://docs.python.org/2/library/test.html
 
-echo "virtualenv --python=/usr/local/bin/python3.8 --no-site-packages testenv"
-virtualenv --python=/usr/local/bin/python3.8 --no-site-packages testenv
+echo "virtualenv --python=/usr/local/bin/python3.8 testenv"
+virtualenv --python=/usr/local/bin/python3.8 testenv
 echo "source testenv/bin/activate"
 source testenv/bin/activate
 cd ../..
@@ -35,20 +39,21 @@ pwd
 # SO-SIH-157 - 07/17/2018 - Pip version
 # Checking python, pip version inside virtualenv
 echo "python --version"
-python --version
+python3.8 --version
 echo "pip --version"
-pip --version
+pip3.8 --version
 echo "virtualenv --version"
 virtualenv --version
 
-echo "pip3.8 install source/image-handler/. --target=$VIRTUAL_ENV/lib/python3.8/site-packages/"
-pip3.8 install source/image-handler/. --target=$VIRTUAL_ENV/lib/python3.8/site-packages/
-echo "pip install mock pytest"
+echo "pip3.8 install source/image_handler_lambda/. --target=$VIRTUAL_ENV/lib/python3.8/site-packages/"
+python3.8 -m pip install "source/image_handler_lambda/." --target=$VIRTUAL_ENV/lib/python3.8/site-packages/
+python3.8 -m pip install "source/tc_aws/." --target=$VIRTUAL_ENV/lib/python3.8/site-packages/
+echo "pip3.8 install mock pytest"
 # SIM - 07/31/2018 - Locking dependency version
 # Locking to mock==2.0.0 pytest==3.5.0
-pip install mock==4.0.3 pytest==6.2.4
-echo "pytest source/image-handler"
-pytest source/image-handler/
+pip3.8 install mock pytest
+echo "pytest source/image_handler_lambda"
+pytest source/image_handler_lambda/
 retval=$?
 if [ $retval -eq 0 ] ; then
 	echo "All tests were successful"
@@ -60,10 +65,9 @@ fi
 echo "Clean up test material"
 echo "remove virtualenv"
 deactivate
-rm -rf $VIRTUAL_ENV
-rm -rf $deployment_dir/test
+rm -rf /serverless-image-handler/deployment/test
 pwd
-rm -rf source/image-handler/tests/__pycache__
-rm -rf source/image-handler/.pytest_cache
-rm source/image-handler/tests/*.pyc
+rm -rf source/image_handler_lambda/tests/__pycache__
+rm -rf source/image_handler_lambda/.pytest_cache
+rm source/image_handler_lambda/tests/*.pyc
 echo "Completed testing distribution"
