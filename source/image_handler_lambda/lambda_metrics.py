@@ -38,7 +38,7 @@ def send_data(event, result, start_time):
     if int(result['statusCode']) == 200:
         size = (len(result['body'] * 3)) / 4
     post_dict['Data'] = {
-        'Version': get_distribution('image_handler_py3').version,
+        'Version': get_distribution('image_handler').version,
         'Company': 'AWS',
         'Name': 'AWS Serverless Image Handler',
         'Region': os.environ.get('AWS_DEFAULT_REGION'),

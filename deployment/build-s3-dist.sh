@@ -57,6 +57,7 @@ echo "virtualenv env"
 virtualenv env
 echo "source env/bin/activate"
 source env/bin/activate
+echo $VIRTUAL_ENV
 # SO-SIH-157 - 07/17/2018 - Pip version
 # Checking pip version inside virtualenv for debugging
 echo "which python pip virtualenv, version"
@@ -127,8 +128,8 @@ cd "$VIRTUAL_ENV"
 cd ../../..
 pwd
 echo "pip3.8 install source/image_handler_lambda/. --target=$VIRTUAL_ENV/lib/python3.8/site-packages/"
-pip3.8 install source/image_handler_lambda/. --target="$VIRTUAL_ENV"/lib/python3.8/site-packages/
-pip3.8 install source/tc_aws/. --target="$VIRTUAL_ENV"/lib/python3.8/site-packages/
+python3.8 -m pip install "source/image_handler_lambda/." --target="$VIRTUAL_ENV"/lib/python3.8/site-packages/
+python3.8 -m pip install "source/tc_aws/." --target="$VIRTUAL_ENV"/lib/python3.8/site-packages/
 # shellcheck disable=SC2164
 cd "$VIRTUAL_ENV"
 

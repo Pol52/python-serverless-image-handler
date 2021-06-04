@@ -12,10 +12,8 @@ RUN cd /opt \
     && ./configure --enable-optimizations \
     && make altinstall\
     && rm /opt/Python-3.8.7.tgz
-RUN yum install opencv -y
 RUN pip3.8 install setuptools
 RUN pip3.8 install virtualenv
-RUN yum install ImageMagick-devel -y
 
 
 ENTRYPOINT "bash"

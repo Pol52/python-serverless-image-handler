@@ -17,8 +17,8 @@
 
 import unittest
 import timeit
-from image_handler_py3.lambda_metrics import send_data
-from image_handler_py3.lambda_function import response_formatter
+from image_handler.lambda_metrics import send_data
+from image_handler.lambda_function import response_formatter
 from .event import import_event
 
 

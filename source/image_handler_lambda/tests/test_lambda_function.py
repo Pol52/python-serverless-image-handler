@@ -18,16 +18,16 @@
 import unittest
 import timeit
 from mock import patch
-from image_handler_py3.lambda_function import start_server
-from image_handler_py3.lambda_function import send_metrics
+from image_handler.lambda_function import start_server
+from image_handler.lambda_function import send_metrics
 from .event import import_event
-from image_handler_py3.lambda_function import response_formatter
+from image_handler.lambda_function import response_formatter
 
 
 class start_server_test_case(unittest.TestCase):
 
     def test_start_server(self):
-        with patch('image_handler_py3.lambda_function.start_thumbor') as mock:
+        with patch('image_handler.lambda_function.start_thumbor') as mock:
             t = start_server()
             t.join()
             mock.assert_called_once_with()
@@ -41,7 +41,7 @@ class send_metrics_test_case(unittest.TestCase):
         self.timestamp = timeit.default_timer()
 
     def test_send_metrics(self):
-        with patch('image_handler_py3.lambda_metrics.send_data') as mock:
+        with patch('image_handler.lambda_metrics.send_data') as mock:
             t = send_metrics(self.event, self.response, self.timestamp)
             t.join()
             mock.assert_called_once_with(

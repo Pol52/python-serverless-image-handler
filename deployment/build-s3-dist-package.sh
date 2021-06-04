@@ -29,10 +29,12 @@ export deployment_dir=`pwd`
 
 # Building image handler zip
 echo "Building Image Handler package ZIP file"
-cd $deployment_dir/dist
+cd $deployment_dir
+mkdir -p dist
+cd dist
 pwd
-echo "virtualenv --no-site-packages env"
-virtualenv --no-site-packages env
+echo "virtualenv env"
+virtualenv env
 echo "source env/bin/activate"
 source env/bin/activate
 echo "which python3.8 pip3.8 virtualenv, version"
@@ -50,8 +52,10 @@ rm -rf lib/python3.8/site-packages/image_handler
 
 cd ../../..
 pwd
-echo "pip3.8 install source/image-handler/. --target=$VIRTUAL_ENV/lib/python3.8/site-packages/"
-pip3.8 install source/image-handler/. --target=$VIRTUAL_ENV/lib/python3.8/site-packages/
+echo "pip3.8 install source/image_handler_lambda/. --target=$VIRTUAL_ENV/lib/python3.8/site-packages/"
+python3.8 -m pip install "source/tc_aws/." --target=$VIRTUAL_ENV/lib/python3.8/site-packages/
+python3.8 -m pip install "source/image_handler_lambda/." --target=$VIRTUAL_ENV/lib/python3.8/site-packages/
+
 
 cd $VIRTUAL_ENV
 

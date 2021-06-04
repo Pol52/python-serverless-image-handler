@@ -8,15 +8,15 @@ tests_require = [
 ]
 
 setup(
-    name='image_handler_py3',
+    name='image_handler',
     version='3.2',
     description='Python3.8 version of AWS Serverless Image Handler',
     author='Ian Hartz',
     license='ASL',
     zip_safe=False,
     test_suite='tests',
-    packages=['image_handler_py3'],
-    package_dir={'image_handler_py3': '.'},
+    packages=['image_handler'],
+    package_dir={'image_handler': '.'},
     include_package_data=True,
     package_data={
         '': ['*.conf'],
@@ -35,9 +35,7 @@ setup(
         # Adding Rekognition
         #'thumbor_rekognition==0.1.1', #TODO: fix thumbor_rekognition boto3 dependencies before enabling
         #'tc_aws @ git+https://github.com/amanagr/aws.git@thumbor-7#egg=tc_aws', # manually build from submodule until stable community release
-        'opencv-python==4.5.2.52',
-        'boto3==1.17.86',
-        's3transfer==0.4.2'
+        'opencv-python-headless==4.5.2.52'
     ],
     extras_require={
         'tests': tests_require,

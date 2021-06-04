@@ -22,8 +22,10 @@ import time
 import traceback
 import os.path
 import timeit
-from image_handler_py3 import lambda_metrics
-from image_handler_py3 import lambda_rewrite
+
+import tornado.options
+from image_handler import lambda_metrics
+from image_handler import lambda_rewrite
 from distutils.util import strtobool
 import json
 from hashlib import sha1
@@ -35,6 +37,7 @@ from thumbor.context import ServerParameters
 from thumbor.server import *
 import boto3
 
+#thumbor_config_path = '/var/task/image_handler/thumbor.conf'
 thumbor_config_path = '/serverless-image-handler/source/image_handler_lambda/thumbor.conf'
 thumbor_socket = '/tmp/thumbor'
 unix_path = 'http+unix://%2Ftmp%2Fthumbor'
@@ -196,8 +199,6 @@ def start_thumbor():
     """
     Runs thumbor server with the specified arguments.
     """
-    if exit_event.is_set():
-        stop_thumbor()
     try:
         asyncio.set_event_loop(asyncio.new_event_loop())
         log_level = get_logger_level(logging.getLogger().getEffectiveLevel())
@@ -218,8 +219,11 @@ def start_thumbor():
         validate_config(config, server_parameters)
         with get_context(server_parameters, config, importer) as thumbor_context:
             application = get_application(thumbor_context)
-            run_server(application)
-            tornado.ioloop.IOLoop.instance().start()
+            try:
+                run_server(application)
+                tornado.ioloop.IOLoop.instance().start()
+            except tornado.options.Error:
+                logging.info('thumbor already running')
             logging.info(
                 'thumbor running at %s:%d' %
                 (thumbor_context.server.ip, thumbor_context.server.port)
@@ -295,7 +299,7 @@ def request_thumbor(original_request, session):
         logging.error('invalid http path: %s' % error)
     request_headers = {}
     vary, request_headers = auto_webp(original_request, request_headers)
-    return session.get(unix_path + http_path, headers=request_headers), vary
+    return session.get(unix_path + http_path, headers=request_headers), vary  # TODO: Add unix path string concatenation in prod
 
 
 def process_thumbor_response(thumbor_response, vary, original_request):
@@ -367,7 +371,7 @@ def call_thumbor(original_request):
     return process_thumbor_response(thumbor_response, vary, original_request)
 
 
-def lambda_handler(event):
+def lambda_handler(event, context):
     """
     Main event handler, calls thumbor with received event.
     """
@@ -381,7 +385,7 @@ def lambda_handler(event):
         ]:
             log_level = 'ERROR'
         logging.getLogger().setLevel(log_level)
-
+        t = start_server()
         if event['requestContext']['httpMethod'] != 'GET' and \
                 event['requestContext']['httpMethod'] != 'HEAD' and \
                 event['requestContext']['httpMethod'] != 'POST':
