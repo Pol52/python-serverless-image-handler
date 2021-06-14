@@ -120,6 +120,53 @@ Example:
 
 ## Debugging on Windows & IntelliJ idea with AWS Toolkit
 After using `build-s3-dist.sh` make sure to delete node_modules from source/image-handler and run `npm install` to reinstall dependencies for the correct platform.
+
+## Request example
+Requests for the image-handler must be encoded in base64.
+Thumbor-based urls can still be used, however it is only possible to resize the image. Adding cropping to the url will make the request fail.
+
+A standard, yet to be encoded, request is:
+
+```
+{
+    "bucket": "bucket-name",
+    "key": "image-name",
+    "edits":{
+        "extract":{
+            "left":100,
+            "top":100,
+            "width":300,
+            "height":200
+        },
+        "resize":{
+            "width":100
+        },
+        "smartCrop": true 
+     }
+}
+```
+
+Any mistake in the definition of the request object will most likely result in one of the following errors:
+ 
+```
+ERROR    {
+  status: 404,
+  code: 'NoSuchKey',
+  message: 'The specified key does not exist.'
+}
+```
+
+or 
+
+```
+ERROR	{
+  status: 400,
+  code: 'DecodeRequest::CannotDecodeRequest',
+  message: 'The image request you provided could not be decoded. Please check that your request is base64 encoded properly and refer to the documentation for additional guidance.'
+}
+```
+
+For more options, refer to the [sharp documentation](https://sharp.pixelplumbing.com/). 
 ***
 ## License
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.<br />
