@@ -39,6 +39,7 @@ describe('index', function() {
     it('001/should return the image when there is no error', async function() {
       // Arrange
       const event = {
+        headers: {},
         path: '/test.jpg'
       };
       // Act
@@ -64,6 +65,7 @@ describe('index', function() {
     it('002/should return the image with custom headers when custom headers are provided', async function() {
       // Arrange
       const event = {
+        headers: {},
         path: '/eyJidWNrZXQiOiJzb3VyY2UtYnVja2V0Iiwia2V5IjoidGVzdC5qcGciLCJoZWFkZXJzIjp7IkN1c3RvbS1IZWFkZXIiOiJDdXN0b21WYWx1ZSJ9fQ=='
       };
       // Act
@@ -90,6 +92,7 @@ describe('index', function() {
     it('003/should return the image when the request is from ALB', async function() {
       // Arrange
       const event = {
+        headers: {},
         path: '/test.jpg',
         requestContext: {
           elb: {}

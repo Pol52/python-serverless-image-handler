@@ -32,12 +32,6 @@ export class ConstructsStack extends cdk.Stack {
       default: 'defaultBucket, bucketNo2, bucketNo3, ...',
       allowedPattern: '.+'
     });
-    const deployDemoUiParameter = new CfnParameter(this, 'DeployDemoUI', {
-      type: 'String',
-      description: 'Would you like to deploy a demo UI to explore the features and capabilities of this solution? This will create an additional Amazon S3 bucket and Amazon CloudFront distribution in your account.',
-      default: 'Yes',
-      allowedValues: [ 'Yes', 'No' ]
-    });
     const logRetentionPeriodParameter = new CfnParameter(this, 'LogRetentionPeriod', {
       type: 'Number',
       description: 'This solution automatically logs events to Amazon CloudWatch. Select the amount of time for CloudWatch logs from this solution to be retained (in days).',
@@ -102,10 +96,6 @@ export class ConstructsStack extends cdk.Stack {
             Parameters: [ sourceBucketsParameter.logicalId ]
           },
           {
-            Label: { default: 'Demo UI' },
-            Parameters: [ deployDemoUiParameter.logicalId ]
-          },
-          {
             Label: { default: 'Event Logging' },
             Parameters: [ logRetentionPeriodParameter.logicalId ]
           },
@@ -139,7 +129,6 @@ export class ConstructsStack extends cdk.Stack {
       corsEnabledParameter,
       corsOriginParameter,
       sourceBucketsParameter,
-      deployDemoUiParameter,
       logRetentionPeriodParameter,
       autoWebPParameter,
       enableSignatureParameter,
@@ -151,17 +140,12 @@ export class ConstructsStack extends cdk.Stack {
     };
 
     // Serverless Image Handler Construct
-    const serverlessImageHander = new ServerlessImageHandler(this, 'ServerlessImageHandler', sihProps);
+    const serverlessImageHandler = new ServerlessImageHandler(this, 'ServerlessImageHandler', sihProps);
 
     // Outputs
     new cdk.CfnOutput(this, 'ApiEndpoint', {
       value: cdk.Fn.sub('https://${ImageHandlerDistribution.DomainName}'),
       description: 'Link to API endpoint for sending image requests to.'
-    });
-    new cdk.CfnOutput(this, 'DemoUrl', {
-      value: cdk.Fn.sub('https://${DemoDistribution.DomainName}/index.html'),
-      description: 'Link to the demo user interface for the solution.',
-      condition: serverlessImageHander.node.findChild('DeployDemoUICondition') as cdk.CfnCondition
     });
     new cdk.CfnOutput(this, 'SourceBucketsOutput', {
       value: sourceBucketsParameter.valueAsString,
@@ -174,7 +158,7 @@ export class ConstructsStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'CorsOriginOutput', {
       value: corsOriginParameter.valueAsString,
       description: 'Origin value returned in the Access-Control-Allow-Origin header of image handler API responses.',
-      condition: serverlessImageHander.node.findChild('EnableCorsCondition') as cdk.CfnCondition
+      condition: serverlessImageHandler.node.findChild('EnableCorsCondition') as cdk.CfnCondition
     }).overrideLogicalId('CorsOrigin');
     new cdk.CfnOutput(this, 'LogRetentionPeriodOutput', {
       value: cdk.Fn.ref('LogRetentionPeriod'),

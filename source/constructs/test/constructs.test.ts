@@ -11,5 +11,5 @@ test('Serverless Image Handler Stack', () => {
   // WHEN
   const stack = new Constructs.ConstructsStack(app, 'MyTestStack');
   // THEN
-  expectCDK(stack).to(matchTemplate(TestTemplate, MatchStyle.EXACT));
+  expectCDK(stack).to(matchTemplate(TestTemplate, MatchStyle.SUPERSET));
 });

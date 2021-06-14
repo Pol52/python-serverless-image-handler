@@ -11,6 +11,3 @@ npm test
 
 cd $source_dir/image-handler
 npm test
-
-cd $source_dir/custom-resource
-npm test
