@@ -8,18 +8,24 @@ const secretsManager = new AWS.SecretsManager();
 
 const ImageRequest = require('./image-request.js');
 const ImageHandler = require('./image-handler.js');
+const ImageUpload = require('./image-upload.js');
 
 exports.handler = async (event) => {
     console.log(event);
     const imageRequest = new ImageRequest(s3, secretsManager);
     const imageHandler = new ImageHandler(s3, rekognition);
+    const imageUpload = new ImageUpload(s3);
     const isAlb = event.requestContext && event.requestContext.hasOwnProperty('elb');
 
     try {
         const request = await imageRequest.setup(event);
-        console.log(request);
-
         const processedRequest = await imageHandler.process(request);
+
+        if (event.headers["X-save-s3-key"] &&
+            event.headers["X-save-s3-key"] === process.env.S3_SAVE_SECRET) {
+            await imageUpload.uploadToBucket(processedRequest);
+        }
+
         const headers = getResponseHeaders(false, isAlb);
         headers["Content-Type"] = request.ContentType;
         headers["Expires"] = request.Expires;
