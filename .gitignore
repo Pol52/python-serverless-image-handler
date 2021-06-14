@@ -27,3 +27,4 @@ demo-ui-config.js
 **/.aws-sam
 .idea
 **/env-variables.json
+**/template.yaml
