@@ -86,6 +86,40 @@ aws s3 sync ./global-s3-assets/ s3://$DIST_OUTPUT_BUCKET-$REGION/$SOLUTION_NAME/
 - [@bretto36](https://github.com/bretto36) for [#182](https://github.com/awslabs/serverless-image-handler/pull/182)
 - [@makoncline](https://github.com/makoncline) for [#255](https://github.com/awslabs/serverless-image-handler/pull/255)
 
+
+## Saving output image to S3
+
+It is possible to save the output image to a S3 bucket adding extra HTTP Headers.
+In order to enable output saving:
+
+- Open the AWS console and go to the Lambda section
+- Open the *-ImageHandlerFunction-* lambda
+- Add S3_SAVE_SECRET to the Lambda environment. Choose a secret key long enough, e.g. 32 characters, digits and letters in mixed
+  case. This is the key that must be supplied by the invoker to save on S3.
+- (optional) add S3_SAVE_BUCKET to the Lambda environment. If missing, TC_AWS_LOADER_BUCKET is used as fallback.
+  This is the target bucket.
+- edit the Lambda role to add "s3:PutObject" permission to the policy on the target bucket (S3_SAVE_BUCKET).
+- save the changes
+
+Now you are ready to request save output. You need to set `X-save-s3-key` to the request header with the value of the
+S3 path (key) where the file must be saved. In this case you must also set the `X-save-secret` request header with a string
+that matches the S3_SAVE_SECRET.
+
+Now you can issue two different type of requests, depending on your needs:
+
+- GET request: the output image to be returned in the body of the request. HTTP status will be 200 OK;
+- POST request: the output image to be returned in the body of the request. HTTP status will be 201 Created.
+
+Example:
+
+    # image returned in the body
+	curl -H "X-save-s3-key: my/output/image.jpg" -H "X-save-secret: 123456789" https://a12345.execute-api.us-east-1.amazonaws.com/image/300x300/source.jpg
+
+    # image not returned in the body
+	curl -I -X POST -H "X-save-s3-key: out/image.jpg" -H "X-save-secret: ayzd5BEk7znTCMgNRQMkfyfTa54A6vA6" https://a12345.execute-api.us-east-1.amazonaws.com/image/300x300/source.jpg
+
+## Debugging on Windows & IntelliJ idea with AWS Toolkit
+After using `build-s3-dist.sh` make sure to delete node_modules from source/image-handler and run `npm install` to reinstall dependencies for the correct platform.
 ***
 ## License
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.<br />
