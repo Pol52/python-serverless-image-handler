@@ -22,8 +22,10 @@ exports.handler = async (event) => {
         const processedRequest = await imageHandler.process(request);
 
         if (event.headers["X-save-s3-key"] &&
-            event.headers["X-save-s3-key"] === process.env.S3_SAVE_SECRET) {
-            await imageUpload.uploadToBucket(processedRequest);
+            event.headers["X-save-secret"] &&
+            event.headers["X-save-secret"] === process.env.S3_SAVE_SECRET) {
+            const savePath = event.headers["X-save-s3-key"];
+            await imageUpload.uploadToBucket(processedRequest, savePath, request.bucket);
         }
 
         const headers = getResponseHeaders(false, isAlb);

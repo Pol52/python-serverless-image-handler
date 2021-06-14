@@ -8,13 +8,15 @@ class ImageUpload {
 
   /**
    * @param{string} imageBase64
+   * @param{string} savePath
+   * @param{string} bucket
    * @returns {Promise<void>}
    */
-  async uploadToBucket(imageBase64) {
+  async uploadToBucket(imageBase64, savePath, bucket) {
     let buf = Buffer.from(imageBase64.replace(/^data:image\/\w+;base64,/, ""),'base64')
     const data = {
-      Bucket: process.env.SOURCE_BUCKETS,
-      Key: 'prova.jpg',
+      Bucket: bucket,
+      Key: savePath,
       Body: buf,
       ContentEncoding: 'base64',
       ContentType: 'image/jpeg'
