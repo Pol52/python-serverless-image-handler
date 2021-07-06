@@ -58,25 +58,3 @@ cd $source_dir/image-handler
 npm install
 npm run build
 cp dist/image-handler.zip $build_dist_dir/image-handler.zip
-
-echo "------------------------------------------------------------------------------"
-echo "Package the demo-ui assets"
-echo "------------------------------------------------------------------------------"
-mkdir $build_dist_dir/demo-ui/
-cp -r $source_dir/demo-ui/** $build_dist_dir/demo-ui/
-
-echo "------------------------------------------------------------------------------"
-echo "Package the custom-resource code"
-echo "------------------------------------------------------------------------------"
-cd $source_dir/custom-resource
-npm install
-npm run build
-cp dist/custom-resource.zip $build_dist_dir/custom-resource.zip
-
-echo "------------------------------------------------------------------------------"
-echo "Generate the demo-ui manifest document"
-echo "------------------------------------------------------------------------------"
-cd $source_dir/demo-ui
-manifest=(`find * -type f ! -iname ".DS_Store"`)
-manifest_json=$(IFS=,;printf "%s" "${manifest[*]}")
-echo "{\"files\":[\"$manifest_json\"]}" | sed 's/,/","/g' >> $build_dist_dir/demo-ui-manifest.json
